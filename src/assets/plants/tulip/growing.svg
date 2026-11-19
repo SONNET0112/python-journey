@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </radialGradient>
+</defs>
+<ellipse cx="256" cy="300" rx="190" ry="190" fill="url(#glow)"/>
+<g transform="translate(256,432) scale(1.705) translate(-256,-432)">
+<ellipse cx="256" cy="432" rx="132" ry="24" fill="rgba(255,255,255,0.05)"/><ellipse cx="256" cy="428" rx="92" ry="15" fill="rgba(120,90,200,0.18)"/><path d="M256,430 C248,350.8 264,306.8 256,254" stroke="#5e9a63" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M256.0,394.8 Q250.6,370.7 228.7,371.9 Q231.4,393.7 256.0,394.8 Z" fill="#79b070" opacity="1"/><path d="M256.0,394.8 Q232.5,387.4 222.5,407.0 Q242.7,415.6 256.0,394.8 Z" fill="#79b070" opacity="0.55"/><path d="M256.0,359.6 Q284.7,360.8 290.1,335.8 Q264.7,332.2 256.0,359.6 Z" fill="#79b070" opacity="1"/><path d="M256.0,359.6 Q271.5,383.8 295.1,373.8 Q283.5,351.0 256.0,359.6 Z" fill="#79b070" opacity="0.55"/><path d="M256.0,324.4 Q243.3,294.0 214.8,300.6 Q223.4,328.6 256.0,324.4 Z" fill="#79b070" opacity="1"/><path d="M256.0,324.4 Q224.6,314.6 211.3,340.7 Q238.3,352.1 256.0,324.4 Z" fill="#79b070" opacity="0.55"/><path d="M256.0,289.2 Q292.1,297.1 304.5,266.6 Q273.2,256.4 256.0,289.2 Z" fill="#79b070" opacity="1"/><path d="M256.0,289.2 Q276.0,320.4 306.2,307.5 Q291.3,278.2 256.0,289.2 Z" fill="#79b070" opacity="0.55"/>
+</g>
+</svg>

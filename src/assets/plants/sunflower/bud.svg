@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </radialGradient>
+</defs>
+<ellipse cx="256" cy="300" rx="190" ry="190" fill="url(#glow)"/>
+<g transform="translate(256,432) scale(1.402) translate(-256,-432)">
+<ellipse cx="256" cy="432" rx="132" ry="24" fill="rgba(255,255,255,0.05)"/><ellipse cx="256" cy="428" rx="92" ry="15" fill="rgba(120,90,200,0.18)"/><path d="M256,430 C248,333.7 264,280.20000000000005 256,216" stroke="#5f9e63" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M256.0,399.4 Q251.1,374.7 228.7,375.3 Q230.8,397.6 256.0,399.4 Z" fill="#69a86a" opacity="1"/><path d="M256.0,399.4 Q231.9,391.9 221.7,411.9 Q242.4,420.7 256.0,399.4 Z" fill="#69a86a" opacity="0.55"/><path d="M256.0,368.9 Q284.4,368.6 288.4,343.7 Q263.2,341.4 256.0,368.9 Z" fill="#69a86a" opacity="1"/><path d="M256.0,368.9 Q271.3,392.8 294.5,382.9 Q283.1,360.4 256.0,368.9 Z" fill="#69a86a" opacity="0.55"/><path d="M256.0,338.3 Q246.1,308.4 218.3,312.6 Q224.5,340.0 256.0,338.3 Z" fill="#69a86a" opacity="1"/><path d="M256.0,338.3 Q225.9,328.9 213.2,353.9 Q239.0,364.8 256.0,338.3 Z" fill="#69a86a" opacity="0.55"/><path d="M256.0,307.7 Q290.5,311.7 299.1,282.1 Q268.9,275.5 256.0,307.7 Z" fill="#69a86a" opacity="1"/><path d="M256.0,307.7 Q274.7,336.9 303.1,324.9 Q289.1,297.4 256.0,307.7 Z" fill="#69a86a" opacity="0.55"/><path d="M256.0,277.1 Q239.7,243.0 207.3,252.2 Q218.8,283.9 256.0,277.1 Z" fill="#69a86a" opacity="1"/><path d="M256.0,277.1 Q219.9,265.8 204.6,295.8 Q235.6,309.0 256.0,277.1 Z" fill="#69a86a" opacity="0.55"/><path d="M256.0,246.6 Q295.8,256.3 310.3,222.9 Q275.9,210.7 256.0,246.6 Z" fill="#69a86a" opacity="1"/><path d="M256.0,246.6 Q278.1,281.1 311.7,266.8 Q295.1,234.3 256.0,246.6 Z" fill="#69a86a" opacity="0.55"/><path d="M256,216 C244,202 246,176 256,170 C266,176 268,202 256,216 Z" fill="#b9c46a"/><path d="M256,214 C250,202 252,186 256,182" stroke="rgba(0,0,0,0.15)" stroke-width="2" fill="none"/>
+</g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </radialGradient>
+</defs>
+<ellipse cx="256" cy="300" rx="190" ry="190" fill="url(#glow)"/>
+<g transform="translate(256,432) scale(2.400) translate(-256,-432)">
+<ellipse cx="256" cy="432" rx="132" ry="24" fill="rgba(255,255,255,0.05)"/><ellipse cx="256" cy="428" rx="92" ry="15" fill="rgba(120,90,200,0.18)"/><path d="M256,436 C250,401.6 262,384.4 256,350" stroke="#7d5b4b" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M256,397.3 Q243.72436,387.07030000000003 235.5406,379.90951" stroke="#7d5b4b" stroke-width="2.7" fill="none" stroke-linecap="round"/><path d="M256,375.8 Q270.62344,363.6138 280.37239999999997,355.08346" stroke="#7d5b4b" stroke-width="2.7" fill="none" stroke-linecap="round"/><path d="M256.0,410.2 Q247.8,384.4 224.0,387.8 Q229.0,411.3 256.0,410.2 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,398.4 Q285.2,399.6 290.6,374.1 Q264.9,370.5 256.0,398.4 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,386.6 Q246.5,356.6 218.8,360.5 Q224.6,387.8 256.0,386.6 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,374.7 Q289.6,376.1 295.8,346.9 Q266.2,342.7 256.0,374.7 Z" fill="#8fae74" opacity="0.9"/>
+</g>
+</svg>

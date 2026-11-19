@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </radialGradient>
+</defs>
+<ellipse cx="256" cy="300" rx="190" ry="190" fill="url(#glow)"/>
+<g transform="translate(256,432) scale(1.531) translate(-256,-432)">
+<ellipse cx="256" cy="432" rx="132" ry="24" fill="rgba(255,255,255,0.05)"/><ellipse cx="256" cy="428" rx="92" ry="15" fill="rgba(120,90,200,0.18)"/><path d="M256,436 C250,357.6 262,318.4 256,240" stroke="#7d5b4b" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M256,347.8 Q228.02296,324.48580000000004 209.3716,308.16586" stroke="#7d5b4b" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M256,328.2 Q286.11736,303.1022 306.1956,285.53373999999997" stroke="#7d5b4b" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M256,308.6 Q223.74232,281.71860000000004 202.2372,262.90162000000004" stroke="#7d5b4b" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M256,289 Q290.398,260.335 313.33,240.2695" stroke="#7d5b4b" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M256,269.4 Q219.46168,238.95139999999998 195.1028,217.63737999999998" stroke="#7d5b4b" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M256.0,377.2 Q247.8,351.4 224.0,354.8 Q229.0,378.3 256.0,377.2 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,363.7 Q284.1,364.9 289.3,340.4 Q264.5,336.9 256.0,363.7 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,350.3 Q247.1,322.4 221.4,326.0 Q226.8,351.5 256.0,350.3 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,336.8 Q286.3,338.0 291.9,311.6 Q265.2,307.9 256.0,336.8 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,323.3 Q246.5,293.3 218.8,297.2 Q224.6,324.6 256.0,323.3 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,309.8 Q288.5,311.2 294.5,282.9 Q265.9,278.8 256.0,309.8 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,296.4 Q245.8,264.3 216.2,268.5 Q222.4,297.7 256.0,296.4 Z" fill="#8fae74" opacity="0.9"/><path d="M256.0,282.9 Q290.7,284.3 297.1,254.1 Q266.5,249.8 256.0,282.9 Z" fill="#8fae74" opacity="0.9"/>
+</g>
+</svg>

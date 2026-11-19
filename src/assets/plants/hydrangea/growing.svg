@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </radialGradient>
+</defs>
+<ellipse cx="256" cy="300" rx="190" ry="190" fill="url(#glow)"/>
+<g transform="translate(256,432) scale(2.000) translate(-256,-432)">
+<ellipse cx="256" cy="432" rx="132" ry="24" fill="rgba(255,255,255,0.05)"/><ellipse cx="256" cy="428" rx="92" ry="15" fill="rgba(120,90,200,0.18)"/><path d="M256,430 C248,362.5 264,325 256,280" stroke="#5f9560" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M256.0,411.3 Q251.5,387.7 230.2,388.1 Q232.1,409.4 256.0,411.3 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,411.3 Q233.1,404.1 223.4,423.1 Q243.1,431.4 256.0,411.3 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,392.5 Q282.6,391.9 286.0,368.4 Q262.4,366.6 256.0,392.5 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,392.5 Q270.4,414.9 292.2,405.7 Q281.4,384.5 256.0,392.5 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,373.8 Q247.4,345.7 221.6,349.1 Q226.7,374.6 256.0,373.8 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,373.8 Q228.0,365.0 216.2,388.2 Q240.2,398.4 256.0,373.8 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,355.0 Q287.9,357.7 295.0,330.2 Q267.0,325.0 256.0,355.0 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,355.0 Q273.2,381.9 299.4,370.8 Q286.5,345.5 256.0,355.0 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,336.3 Q242.3,304.4 212.4,311.7 Q221.7,341.1 256.0,336.3 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,336.3 Q222.9,325.9 209.0,353.4 Q237.3,365.4 256.0,336.3 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,317.5 Q292.6,324.7 304.3,293.7 Q272.6,284.1 256.0,317.5 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,317.5 Q276.1,348.9 306.6,335.9 Q291.6,306.4 256.0,317.5 Z" fill="#6fa96b" opacity="0.55"/><path d="M256.0,298.8 Q236.3,264.0 202.9,276.1 Q217.3,308.6 256.0,298.8 Z" fill="#6fa96b" opacity="1"/><path d="M256.0,298.8 Q217.9,286.8 201.7,318.5 Q234.4,332.4 256.0,298.8 Z" fill="#6fa96b" opacity="0.55"/>
+</g>
+</svg>
