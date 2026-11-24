@@ -15,6 +15,8 @@ export interface DailyTask {
   done: boolean;
   /** a practice-project task earns a much larger plant reward */
   kind?: "project";
+  /** links this task back to the spaced-repetition queue */
+  reviewKey?: string;
 }
 
 export interface DayPlan {
@@ -27,6 +29,8 @@ export interface DayPlan {
   points: string[];
   /** what yesterday actually covered, used for the review task and the continuity line */
   previousPoints: string[];
+  /** rest = 休息日, consolidation = 每周综合练习日, normal = 正常推进 */
+  mode?: "normal" | "rest" | "consolidation";
   tasks: DailyTask[];
   totalMinutes: number;
   energy: Energy;
@@ -53,7 +57,20 @@ export interface Topic {
   stageId: string;
   week: number;
   points: string[];
+  /** knowledge point → 1 轻 / 2 常规 / 3 概念密集（占两个学习名额） */
+  difficulty?: Record<string, 1 | 2 | 3>;
   project?: string;
+}
+
+/** One point on the spaced-repetition queue. */
+export interface ReviewItem {
+  key: string;
+  topicId: string;
+  point: string;
+  /** 0..3 = 第 1/2/3/4 次回访；>=4 已退出队列 */
+  stage: number;
+  due: string;
+  doneCount: number;
 }
 
 export interface LearningModule {
@@ -200,6 +217,8 @@ export interface UserSettings {
   defaultMinutes: number;
   minutesByWeekday: Record<string, number>; // "1".."0" → minutes
   restDays: number[]; // weekday numbers 0-6
+  /** 周六综合练习日：不学新点，只复习+动手 */
+  weeklyRhythm: boolean;
   energy: Energy;
   difficulty: Difficulty;
   adoptConfirm: boolean;
@@ -218,6 +237,8 @@ export interface UserProgress {
   completedStages: string[];
   completedProjects: string[];
   stagePointsDone: Record<string, number>;
+  /** spaced-repetition queue, keyed by `topicId::point` */
+  reviews: ReviewItem[];
 }
 
 export interface DayState {

@@ -178,6 +178,9 @@ test("今天是明天的基础：知识点按顺序推进，不跳不重复", as
   await expect(page.getByText(/理解 self 是什么/).first()).toBeVisible();
   await expect(page.getByText(/理解 实例属性与实例方法/).first()).toBeVisible();
   await expect(page.getByText(/理解 Class 与 Object/)).toHaveCount(0);
+  // 学过的点会自动排进间隔复习（1 天后第一次）
+  await expect(page.getByText(/间隔复习（第 1 次）：Class 与 Object/)).toBeVisible();
+  await expect(page.getByText(/今日名额 2/)).toBeVisible();
   expect(errors).toEqual([]);
 });
 

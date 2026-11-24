@@ -2,12 +2,13 @@ import type { AppData, DayPlan, UserSettings } from "../types";
 import { TOPICS } from "../data/roadmap";
 
 export const STORAGE_KEY = "python-journey.data";
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const defaultSettings = (): UserSettings => ({
   defaultMinutes: 30,
   minutesByWeekday: { "1": 30, "2": 30, "3": 30, "4": 30, "5": 30, "6": 45, "0": 20 },
   restDays: [0],
+  weeklyRhythm: true,
   energy: "normal",
   difficulty: "normal",
   adoptConfirm: true,
@@ -27,6 +28,7 @@ export const defaultData = (): AppData => ({
     completedStages: [],
     completedProjects: [],
     stagePointsDone: {},
+    reviews: [],
   },
   plans: {},
   records: {},
@@ -83,6 +85,8 @@ export function validateAppData(raw: unknown): { ok: true; data: AppData } | { o
     };
   }
   data.plans = plans;
+  // v4 added the spaced-repetition queue
+  if (!Array.isArray(data.progress.reviews)) data.progress = { ...data.progress, reviews: [] };
 
   // v2 had no per-point cursor: treat fully completed topics as fully learned
   if (!isObj((raw as Record<string, unknown>).progress) || !isObj(((raw as Record<string, unknown>).progress as Record<string, unknown>).pointsDone)) {

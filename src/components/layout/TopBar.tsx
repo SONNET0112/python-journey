@@ -30,7 +30,7 @@ export function TopBar({ page, onNavigate }: { page: PageId; onNavigate: (p: Pag
           <Flame size={12} className="text-[#ffb56b]" /> 连续 {data.progress.streak} 天
         </span>
         <span className="chip">
-          今日 {done}/{plan.tasks.length} 项
+          今天 {done}/{plan.tasks.length} 项
         </span>
         <button className="btn btn-ghost px-2.5 py-1.5 lg:hidden" onClick={() => onNavigate("settings")} aria-label="打开设置">
           <Menu size={14} />

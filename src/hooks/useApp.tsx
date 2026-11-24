@@ -6,6 +6,7 @@ import { evaluate, unlockAll } from "../services/achievementService";
 import { pickLine } from "../services/encouragementService";
 import { EXP, grow, newAdoption, water, wateredOn } from "../services/plantGrowth";
 import { advancePoints, currentTopic } from "../services/progressCalculator";
+import { advanceReview, dueReviews, scheduleAfterLearn } from "../services/scheduler";
 import { emptyNote, mistakesToReview, tagsForTopic, weakPoints } from "../services/notes";
 import { addTask, generatePlan, removeTask, withTaskMinutes, withTaskTitle } from "../services/taskGenerator";
 import { defaultData, defaultSettings, exportJSON, importJSON, load, save } from "../services/storage";
@@ -68,6 +69,8 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
   const lastDone = d.progress.completedTopicIds[d.progress.completedTopicIds.length - 1];
   const minutes = state.minutes ?? d.settings.minutesByWeekday[String(weekdayOf(date))] ?? d.settings.defaultMinutes;
   // the last plan before this date tells us where the learner actually stopped
+  const restDay = d.settings.restDays.includes(weekdayOf(date));
+  const consolidation = d.settings.weeklyRhythm && weekdayOf(date) === 6 && !restDay;
   const previousPlan = Object.values(d.plans)
     .filter((p) => p.date < date)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -81,7 +84,9 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
     difficulty: state.difficulty,
     reviewCount: d.progress.reviewCount[topic.id] ?? 0,
     startPoint: d.progress.pointsDone[topic.id] ?? 0,
-    restDay: d.settings.restDays.includes(weekdayOf(date)),
+    restDay,
+    consolidation,
+    reviewItems: dueReviews(d.progress.reviews, date, consolidation ? 3 : 2),
     previousTopic: lastDone ? topicById(lastDone) : undefined,
     previousPoints: previousPlan?.points ?? [],
     mistakes: mistakesToReview(topic, d.wrongQuestions).map((m) => ({ title: m.title, reason: m.reason })),
@@ -189,6 +194,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const completedTopicIds = advanced ? [...completed, topic.id] : completed;
       const topicIndex = advanced ? Math.min(d.progress.topicIndex + 1, TOPICS.length - 1) : d.progress.topicIndex;
       const pointsDone = { ...d.progress.pointsDone, [topic.id]: covered };
+      // 先结算今天复习过的点，再把今天新学的点放进间隔队列（1/3/7/21 天）
+      let reviews = plan.tasks.filter((t) => t.done && t.reviewKey).reduce((acc, t) => advanceReview(acc, t.reviewKey!, date), d.progress.reviews);
+      if (mastery === "full" || mastery === "basic") reviews = scheduleAfterLearn(topic.id, plan.points ?? [], date, reviews);
 
       const projectDone = plan.tasks.some((t) => t.kind === "project" && t.done);
       const completedProjects =
@@ -254,6 +262,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ...d.progress,
           topicIndex,
           pointsDone,
+          reviews,
           completedTopicIds,
           reviewCount,
           completedProjects,

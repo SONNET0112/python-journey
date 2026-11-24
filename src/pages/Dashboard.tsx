@@ -7,8 +7,9 @@ import { Bar, Card, Ring, SectionTitle, Stat, cx } from "../components/ui";
 import { STAGES, TOPICS } from "../data/roadmap";
 import { useApp } from "../hooks/useApp";
 import { dailyLine } from "../services/encouragementService";
+import { daysFor, slotsFor } from "../services/scheduler";
 import { currentStage, currentTopic, overallProgress, recordsList, stageProgressOf, stats } from "../services/progressCalculator";
-import { fmtCN, todayISO } from "../utils/date";
+import { fmtCN, todayISO, weekdayOf } from "../utils/date";
 import type { PageId } from "../components/layout/nav";
 
 export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: string) => void }) {
@@ -25,6 +26,13 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: strin
   const pct = plan.tasks.length ? Math.round((done / plan.tasks.length) * 100) : 0;
   const record = data.records[today];
   const covered = data.progress.pointsDone[topic.id] ?? 0;
+  const slots = slotsFor(
+    data.settings.minutesByWeekday[String(weekdayOf(today))] ?? data.settings.defaultMinutes,
+    data.settings.energy,
+    "normal",
+  );
+  const stageTopicsLeft = TOPICS.filter((t) => t.stageId === stage.id && !data.progress.completedTopicIds.includes(t.id)).length;
+  const daysLeft = daysFor(topic, covered, slots) + Math.max(0, stageTopicsLeft - 1);
   const lastRecord = recordsList(data).filter((r) => r.date < today).at(-1);
 
   const upcoming = useMemo(() => {
@@ -98,6 +106,12 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: strin
                 );
               })}
             </div>
+            <p className="mt-2 text-[11px] text-[var(--color-dim)]">
+              科学节奏：每天 {slots} 个名额（难点占两个）· 学过的点在 1/3/7/21 天后自动回到复习 · 每周留一天综合练习、一天休息（可在设置里改）
+            </p>
+            <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
+              按现在节奏，{stage.name} 阶段约还需 <span className="stat-value text-white">{daysLeft}</span> 个学习日
+            </p>
             {plan.previousPoints.length > 0 && (
               <p className="mt-2 text-[11px] text-[var(--color-dim)]">
                 接着昨天：上一节学了 {plan.previousPoints.join("、")}

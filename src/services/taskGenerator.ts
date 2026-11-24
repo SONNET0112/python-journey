@@ -1,4 +1,5 @@
-import type { DailyTask, DayPlan, Difficulty, Energy, TaskSection, Topic, Will } from "../types";
+import type { DailyTask, DayPlan, Difficulty, Energy, ReviewItem, TaskSection, Topic, Will } from "../types";
+import { isRetired, pickPoints, reviewTask, slotsFor } from "./scheduler";
 
 const SECTION_LABEL: Record<TaskSection, string> = {
   review: "知识回顾",
@@ -59,6 +60,11 @@ export interface GenerateInput {
   mistakes?: { title: string; reason: string }[];
   /** knowledge points the learner has already got wrong at least twice */
   weakPoints?: string[];
+  /** points whose spaced-repetition date has arrived */
+  reviewItems?: ReviewItem[];
+  /** weekly consolidation day: no new points, reviews + project only */
+  consolidation?: boolean;
+  mode?: "normal" | "rest" | "consolidation";
 }
 
 const taskId = (date: string, section: string, i: number) => `${date}-${section}-${i}`;
@@ -72,13 +78,38 @@ export function generatePlan(input: GenerateInput): DayPlan {
       { id: taskId(date, "rest", 0), section: "review", title: `随意翻一翻：${topic.title}（今天可以只做这些）`, minutes: 10, done: false },
       { id: taskId(date, "rest", 1), section: "summary", title: "写一句：今天休息得怎么样", minutes: 5, done: false },
     ];
-    return basePlan(input, tasks, "休息日");
+    return basePlan(input, tasks, "休息日", [], "rest");
   }
 
   const alloc = allocate(minutes);
   // tired → half the practice load even if the clock allows more
   const practiceScale = energy === "tired" ? 0.7 : 1;
   const tasks: DailyTask[] = [];
+  const spaced = (input.reviewItems ?? []).filter((r) => !isRetired(r));
+  const start = Math.max(0, Math.min(input.startPoint ?? 0, topic.points.length - 1));
+
+  // 综合日：不学新点，只把这一周的东西串起来 — 交错练习比继续堆新内容更有用
+  if (input.consolidation) {
+    spaced.slice(0, 3).forEach((item, i) => tasks.push(reviewTask(item, date, i)));
+    const fresh = topic.points.slice(Math.max(0, start - 4), start);
+    tasks.push({
+      id: taskId(date, "practice", 0),
+      section: "practice",
+      title: fresh.length
+        ? `综合练习：把 ${fresh.join("、")} 串起来写一个小程序（不学新内容）`
+        : `综合练习：把这一周学过的点串起来，写一个能跑的小程序`,
+      minutes: Math.round(minutes * 0.55),
+      done: false,
+    });
+    tasks.push({
+      id: taskId(date, "summary", 0),
+      section: "summary",
+      title: "周总结：这一周哪一块最不熟？写下来，下周优先补",
+      minutes: Math.max(5, Math.round(minutes * 0.2)),
+      done: false,
+    });
+    return basePlan(input, tasks, `${topic.title} · 综合练习日`, [], "consolidation");
+  }
 
   const prevPts = input.previousPoints ?? [];
   const reviewTitle =
@@ -92,13 +123,16 @@ export function generatePlan(input: GenerateInput): DayPlan {
             ? `回顾上一节：${input.previousTopic.points[input.previousTopic.points.length - 1]}`
             : `回顾基础：${topic.points[0]}`;
   const mistakeReviews = input.mistakes ?? [];
+  // 间隔复习优先：到期的最多 2 个点，每个 4 分钟，剩下的时间才留给"回顾昨天"
+  const due = spaced.slice(0, minutes >= 60 ? 2 : 1);
   tasks.push({
     id: taskId(date, "review", 0),
     section: "review",
     title: reviewTitle,
-    minutes: Math.max(3, alloc.review - mistakeReviews.length * 5),
+    minutes: Math.max(3, alloc.review - mistakeReviews.length * 5 - due.length * 4),
     done: false,
   });
+  due.forEach((item, i) => tasks.push(reviewTask(item, date, i + 1)));
   mistakeReviews.forEach((m, i) => {
     tasks.push({
       id: taskId(date, "review", i + 1),
@@ -109,15 +143,11 @@ export function generatePlan(input: GenerateInput): DayPlan {
     });
   });
 
-  // repeated struggle → smaller bites: only the first point, plus a micro drill
+  // 名额由时长和状态决定；难点占两个名额，这样"塞满"不会变成"消化不了"
+  const slots = slotsFor(minutes, energy, will) + (will === "eager" && minutes >= 45 ? 1 : 0);
+  // repeated struggle → smaller bites: only the next single point
   const split = reviewCount >= 2;
-  let learnCount = minutes < 25 ? 1 : minutes < 45 ? 2 : 3;
-  if (split) learnCount = Math.min(learnCount, 1);
-  if (will === "reluctant") learnCount = Math.max(1, learnCount - 1);
-  if (will === "eager" && minutes >= 45) learnCount = Math.min(topic.points.length, learnCount + 1);
-  // continue from the cursor; a topic is never re-read from the first point
-  const start = Math.max(0, Math.min(input.startPoint ?? 0, topic.points.length - 1));
-  const points = topic.points.slice(start, start + learnCount);
+  const points = split ? topic.points.slice(start, start + 1) : pickPoints(topic, start, slots);
   points.forEach((p, i) => {
     tasks.push({
       id: taskId(date, "learn", i),
@@ -187,7 +217,7 @@ export function generatePlan(input: GenerateInput): DayPlan {
   return basePlan(input, tasks, topic.title, points);
 }
 
-function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, points: string[] = []): DayPlan {
+function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, points: string[] = [], mode: "normal" | "rest" | "consolidation" = "normal"): DayPlan {
   return {
     date: input.date,
     topicId: input.topic.id,
@@ -195,6 +225,7 @@ function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, point
     stageId: input.topic.stageId,
     week: input.topic.week,
     points,
+    mode,
     previousPoints: input.previousPoints ?? [],
     tasks,
     totalMinutes: tasks.reduce((s, t) => s + t.minutes, 0),

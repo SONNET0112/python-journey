@@ -6,6 +6,7 @@ import { SECTION_TONE, TaskRow } from "../components/learning/TaskRow";
 import { Bar, Card, Field, SectionTitle, Seg, cx } from "../components/ui";
 import { useApp } from "../hooks/useApp";
 import { sectionLabel } from "../services/taskGenerator";
+import { daysFor, slotsFor } from "../services/scheduler";
 import { topicById } from "../data/roadmap";
 import type { Difficulty, Energy, TaskSection, Will } from "../types";
 import { addDays, fmtCN, todayISO, weekdayOf } from "../utils/date";
@@ -231,6 +232,24 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
                 height={5}
               />
             </div>
+          )}
+
+          {plan && (
+            <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[10px]">
+              <span className="chip">今日名额 {slotsFor(minutes, state.energy, state.will)}</span>
+              <span className="chip">新知识点 {plan.points.length}</span>
+              <span className="chip">到期复习 {plan.tasks.filter((t) => t.reviewKey).length}</span>
+              {plan.mode === "consolidation" && <span className="chip border-[#ffcf7a]/40 text-[#ffcf7a]">本周综合练习日 · 不学新点</span>}
+              {plan.mode === "rest" && <span className="chip border-[#ffcf7a]/40 text-[#ffcf7a]">休息日 · 只做轻松回顾</span>}
+              <span className="chip">
+                本主题还需约 {daysFor(topicById(plan.topicId)!, data.progress.pointsDone[plan.topicId] ?? 0, slotsFor(minutes, state.energy, state.will))} 天
+              </span>
+            </div>
+          )}
+          {plan && (
+            <p className="mb-3 text-[10px] text-[var(--color-dim)]">
+              名额由时长 + 状态决定，难点占两个名额；学过的点会在 1 / 3 / 7 / 21 天后自动回到复习
+            </p>
           )}
 
           <div className="space-y-3">

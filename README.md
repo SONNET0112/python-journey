@@ -15,8 +15,8 @@ npm run dev        # http://localhost:5188
 ```bash
 npm run build      # tsc -b + vite build
 npm run preview    # 预览构建产物 http://localhost:4188
-npm test           # 37 个单元测试（vitest）
-npm run test:e2e   # 17 个端到端测试（Playwright，使用本机 Chrome）
+npm test           # 48 个单元测试（vitest）
+npm run test:e2e   # 18 个端到端测试（Playwright，使用本机 Chrome）
 node scripts/gen-assets.mjs   # 重新生成 57 张植物阶段图 + 背景图
 node scripts/shots.mjs        # 截取各页面截图到 shots/
 ```
@@ -52,6 +52,18 @@ node scripts/shots.mjs        # 截取各页面截图到 shots/
 - 经验累计跨过阶段阈值即切换形态并写入成长时间线；记录学习时浇一次水，同一天不会重复浇水。
 - 植物不会因为断开学习而枯萎，也不按日期自动成长。
 
+## 每日节奏（怎么算出来的）
+
+| 机制 | 规则 | 为什么 |
+| --- | --- | --- |
+| 名额（认知负荷） | 15/30/45/60/90 分钟 → 1/2/3/4/5 个名额；疲惫或不想学各减 1（至少 1） | 一次只处理少量新信息，避免"塞满但没消化" |
+| 难度成本 | 概念密集/要动手的点占 2 个名额（`Topic.difficulty` = 3） | 难点给足时间，宁可一天只攻一个 |
+| 间隔复习 | 学过的点在第 1、3、7、21 天自动回到「知识回顾」，每天最多 2 个（60 分钟以上可 2 个，短会话 1 个） | 间隔重复比"只回顾昨天"记得更久；复习过的点推进到下一间隔，四轮后退出队列 |
+| 周节奏 | 每周六为综合练习日（不学新点，只做到期复习 + 一个综合练习 + 周总结），周日休息 | 交错练习与巩固，避免连续堆新内容 |
+| 掌握推进 | 完全/基本掌握才移动知识点游标；复习/未完成保留同一切片 | 进度跟着理解走，不跟日历走 |
+
+计划页会显示当天名额、新知识点数、到期复习数、本主题还需几天；首页显示按当前节奏本阶段还需要多少个学习日。
+
 ## 学习笔记与错题本
 
 - 笔记按日期存 `notes[date]`，一天一条，切换日期不会互相覆盖；打开即自动关联当天的阶段、周次、知识模块和任务，并自动打上当天知识点标签（可按 `self` 这类知识点检索）。
@@ -63,7 +75,7 @@ node scripts/shots.mjs        # 截取各页面截图到 shots/
 ## 数据结构与存储
 
 - 类型定义集中在 `src/types/index.ts`（Roadmap、LearningStage、WeeklyPlan、DailyTask、StudyRecord、UserSettings、Plant、PlantStage、PlantAdoption、GrowthJournal、Achievement…）。
-- 存储键：`python-journey.data`，`schemaVersion = 3`（v1/v2 数据自动补齐：`notes` / `wrongQuestions` 为空，已完成主题视为知识点全部学完）。读取时校验，首次运行才写入默认值；导入先 `validateAppData` 校验，失败时原数据不动。
+- 存储键：`python-journey.data`，`schemaVersion = 4`（v1/v2 数据自动补齐：`notes` / `wrongQuestions` 为空，已完成主题视为知识点全部学完）。读取时校验，首次运行才写入默认值；导入先 `validateAppData` 校验，失败时原数据不动。
 - 植物图片通过 `data/plants.ts` 的配置映射解析（`import.meta.glob`），组件里没有硬编码路径；缺图时渲染统一占位。
 
 ## 已知限制

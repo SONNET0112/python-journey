@@ -95,13 +95,43 @@ export const STAGES: LearningStage[] = [
   },
 ];
 
+/** 知识点难度：3 = 概念密集或需要动手，占两个学习名额；1 = 可以快速过 */
+const WEEK_DIFFICULTY: Record<string, Record<string, 1 | 2 | 3>> = {
+  "s1-w1": {},
+  "s1-w2": { 继承: 3, "多态与方法重写": 3 },
+  "s1-w3": { "pathlib 路径处理": 1 },
+  "s1-w4": { BaseModel: 3 },
+  "s1-w5": { 协程: 3, "async / await": 3, "asyncio.gather": 3 },
+  "s1-w6": { "HTTP 基础": 1, "GET 与 POST": 1, 状态码: 1, "requests 与 aiohttp": 3 },
+  "s1-w7": { "venv 与 pip": 1, "requirements.txt": 1, pytest: 3 },
+  "s1-w8": { 异步调用: 3, 结构化响应: 3 },
+};
+
+const HARD_POINTS = new Set([
+  "进程与线程", "内存管理", "TCP 与 UDP", "HTTP 与 HTTPS", "数据库设计", "认证与权限",
+  "Function Calling", "错误处理与成本控制", "Agent 执行循环", "RAG 检索流程",
+  "文档切分", "多 Agent 与状态管理", "Docker Compose", "Nginx 反向代理", "HTTPS 与证书",
+]);
+const EASY_POINTS = new Set(["Linux 常用命令", "端口与连接", "IP 与 DNS", "Token 与上下文", "Prompt 与 System Prompt"]);
+
+const difficultyFor = (points: string[]): Record<string, 1 | 2 | 3> =>
+  Object.fromEntries(points.map((p) => [p, HARD_POINTS.has(p) ? 3 : EASY_POINTS.has(p) ? 1 : 2])) as Record<string, 1 | 2 | 3>;
+
 /** Flat, ordered topic list — the queue the daily plan walks through. */
 
 export const TOPICS: Topic[] = (() => {
   const list: Topic[] = [];
   for (const plan of STAGE_ONE_WEEKS) {
     const m: LearningModule = plan.modules[0];
-    list.push({ id: m.id, title: `${m.title}`, stageId: "stage-1", week: plan.week, points: m.points, project: m.project });
+    list.push({
+      id: m.id,
+      title: `${m.title}`,
+      stageId: "stage-1",
+      week: plan.week,
+      points: m.points,
+      difficulty: Object.fromEntries(m.points.map((p) => [p, WEEK_DIFFICULTY[m.id]?.[p] ?? 2])) as Record<string, 1 | 2 | 3>,
+      project: m.project,
+    });
   }
   // stages 2–6: one knowledge point per topic, so a day always continues the same thread
   for (const stage of STAGES.slice(1)) {
@@ -112,6 +142,7 @@ export const TOPICS: Topic[] = (() => {
         stageId: stage.id,
         week: Math.ceil((i + 1) / 3),
         points: [point],
+        difficulty: difficultyFor([point]),
         project: i === 0 ? stage.project : undefined,
       });
     });

@@ -85,6 +85,20 @@ export function Settings() {
                   );
                 })}
               </div>
+              <div className="mt-3 flex items-center justify-between border-t border-white/8 pt-3">
+                <div>
+                  <p className="text-[12px]">每周六作为综合练习日</p>
+                  <p className="text-[10px] text-[var(--color-dim)]">不学新知识点，只做到期复习 + 一个综合练习，交错练习记得更牢</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({ weeklyRhythm: !data.settings.weeklyRhythm })}
+                  className={cx("relative h-6 w-11 shrink-0 rounded-full transition-colors", data.settings.weeklyRhythm ? "bg-[var(--color-accent)]" : "bg-white/15")}
+                  aria-label="切换每周综合练习日"
+                  aria-pressed={data.settings.weeklyRhythm}
+                >
+                  <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all", data.settings.weeklyRhythm ? "left-[22px]" : "left-0.5")} />
+                </button>
+              </div>
               <p className="mt-1.5 text-[10px] text-[var(--color-dim)]">休息日只安排轻松的回顾，不推进知识点，也不会让植物枯萎。</p>
             </div>
           </div>
