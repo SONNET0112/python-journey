@@ -128,6 +128,32 @@ describe("storage validation", () => {
     expect(validateAppData({ ...defaultData(), journal: "nope" }).ok).toBe(false);
   });
 
+  it("backfills plans saved by an older build (no points field)", () => {
+    const legacy = defaultData() as unknown as Record<string, unknown>;
+    legacy.plans = {
+      "2026-11-25": {
+        date: "2026-11-25",
+        topicId: TOPICS[0].id,
+        topicTitle: TOPICS[0].title,
+        stageId: "stage-1",
+        week: 1,
+        tasks: [{ id: "a", section: "learn", title: "x", minutes: 5, done: false }],
+        totalMinutes: 5,
+        energy: "normal",
+        will: "normal",
+        difficulty: "normal",
+      },
+    };
+    const r = validateAppData(legacy);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      const plan = r.data.plans["2026-11-25"];
+      expect(Array.isArray(plan.points)).toBe(true);
+      expect(plan.points).toEqual([TOPICS[0].points[0]]);
+      expect(plan.previousPoints).toEqual([]);
+    }
+  });
+
   it("keeps an explicit empty array", () => {
     const r = validateAppData({ ...defaultData(), journal: [] });
     expect(r.ok && r.data.journal.length).toBe(0);

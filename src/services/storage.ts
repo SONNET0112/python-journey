@@ -69,6 +69,21 @@ export function validateAppData(raw: unknown): { ok: true; data: AppData } | { o
     activePlantId: typeof raw.activePlantId === "string" ? raw.activePlantId : null,
     seenEncouragements: Array.isArray(raw.seenEncouragements) ? (raw.seenEncouragements as string[]) : [],
   };
+  // older builds stored plans without `points`; harmless, but the UI must never read them as undefined
+  const plans: Record<string, DayPlan> = {};
+  for (const [date, plan] of Object.entries(data.plans as Record<string, DayPlan>)) {
+    const topic = TOPICS.find((t) => t.id === plan?.topicId);
+    const learnCount = plan?.tasks?.filter((t) => t.section === "learn").length || 2;
+    const start = topic ? (data.progress?.pointsDone?.[topic.id] ?? 0) : 0;
+    plans[date] = {
+      ...plan,
+      tasks: Array.isArray(plan?.tasks) ? plan.tasks : [],
+      points: Array.isArray(plan?.points) && plan.points.length ? plan.points : (topic ? topic.points.slice(start, start + learnCount) : []),
+      previousPoints: Array.isArray(plan?.previousPoints) ? plan.previousPoints : [],
+    };
+  }
+  data.plans = plans;
+
   // v2 had no per-point cursor: treat fully completed topics as fully learned
   if (!isObj((raw as Record<string, unknown>).progress) || !isObj(((raw as Record<string, unknown>).progress as Record<string, unknown>).pointsDone)) {
     const done: Record<string, number> = {};
