@@ -3,6 +3,7 @@ import { TOPICS } from "../src/data/roadmap";
 import { generatePlan } from "../src/services/taskGenerator";
 import { emptyNote, mistakesToReview, noteHasContent, noteMatches, tagsForTopic, weakPoints, STATUS_LABEL } from "../src/services/notes";
 import { defaultData, validateAppData, SCHEMA_VERSION } from "../src/services/storage";
+import { addDays, todayISO } from "../src/utils/date";
 import type { WrongQuestion } from "../src/types";
 
 const topic = TOPICS[0];
@@ -55,10 +56,16 @@ describe("mistake review rules", () => {
     expect(mistakesToReview(topic, [mastered])).toEqual([]);
   });
 
-  it("prefers questions from the current topic", () => {
-    const same = mkMistake({ title: "同主题" });
-    const other = mkMistake({ title: "别的主题", topicId: "stage-3-t1", points: [] });
+  it("当前主题的错题优先，今天才记下的别主题错题不插队", () => {
+    const today = todayISO();
+    const same = mkMistake({ title: "同主题", createdAt: today });
+    const other = mkMistake({ title: "别的主题", topicId: "stage-3-t1", points: [], createdAt: today });
     expect(mistakesToReview(topic, [other, same]).map((m) => m.title)).toEqual(["同主题"]);
+  });
+
+  it("放了几天还没弄懂的错题，换了主题也会回来", () => {
+    const old = mkMistake({ title: "老错题", topicId: "stage-3-t1", points: [], createdAt: addDays(todayISO(), -5) });
+    expect(mistakesToReview(topic, [old], 2, todayISO()).map((m) => m.title)).toEqual(["老错题"]);
   });
 
   it("is capped", () => {

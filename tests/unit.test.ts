@@ -131,8 +131,8 @@ describe("storage validation", () => {
   it("backfills plans saved by an older build (no points field)", () => {
     const legacy = defaultData() as unknown as Record<string, unknown>;
     legacy.plans = {
-      "2026-11-25": {
-        date: "2026-11-25",
+      "2026-01-05": {
+        date: "2026-01-05",
         topicId: TOPICS[0].id,
         topicTitle: TOPICS[0].title,
         stageId: "stage-1",
@@ -147,7 +147,7 @@ describe("storage validation", () => {
     const r = validateAppData(legacy);
     expect(r.ok).toBe(true);
     if (r.ok) {
-      const plan = r.data.plans["2026-11-25"];
+      const plan = r.data.plans["2026-01-05"];
       expect(Array.isArray(plan.points)).toBe(true);
       expect(plan.points).toEqual([TOPICS[0].points[0]]);
       expect(plan.previousPoints).toEqual([]);
