@@ -5,7 +5,7 @@ import { STAGES, TOPICS, topicById } from "../data/roadmap";
 import { evaluate, unlockAll } from "../services/achievementService";
 import { pickLine } from "../services/encouragementService";
 import { EXP, grow, newAdoption, water, wateredOn } from "../services/plantGrowth";
-import { advancePoints, currentTopic, minutesFor, projectCursor } from "../services/progressCalculator";
+import { advancePoints, currentTopic, minutesFor, planToResume, projectCursor } from "../services/progressCalculator";
 import { advanceReview, dueReviews, scheduleAfterLearn } from "../services/scheduler";
 import { emptyNote, mistakesToReview, tagsForTopic, weakPoints } from "../services/notes";
 import { addTask, generatePlan, removeTask, withTaskMinutes, withTaskTitle } from "../services/taskGenerator";
@@ -78,6 +78,8 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
     .filter((p) => p.date < date)
     .sort((a, b) => a.date.localeCompare(b.date))
     .at(-1);
+  // 上次的计划没动过 → 今天接着它，不按日历翻到"第二天"
+  const resume = proj ? undefined : planToResume(d, date, topic.id);
   return generatePlan({
     date,
     topic,
@@ -91,7 +93,8 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
     consolidation,
     reviewItems: dueReviews(d.progress.reviews, date, consolidation ? 3 : 2),
     previousTopic: lastDone ? topicById(lastDone) : undefined,
-    previousPoints: proj ? proj.prevPoints : (previousPlan?.points ?? []),
+    previousPoints: proj ? proj.prevPoints : resume ? resume.points : (previousPlan?.points ?? []),
+    continuation: !!resume && !restDay && !consolidation,
     projected: future,
     mistakes: mistakesToReview(topic, d.wrongQuestions).map((m) => ({ title: m.title, reason: m.reason })),
     weakPoints: weakPoints(d.wrongQuestions),

@@ -114,8 +114,9 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: strin
             </p>
             {plan.previousPoints.length > 0 && (
               <p className="mt-2 text-[11px] text-[var(--color-dim)]">
-                接着昨天：上一节学了 {plan.previousPoints.join("、")}
-                {plan.points.length > 0 && <> → 今天继续 {plan.points[0]}</>}
+                {plan.continuation ? "上次没学完：" : "接着昨天：上一节学了 "}
+                {plan.previousPoints.join("、")}
+                {plan.continuation ? " → 今天接着把它们学完" : plan.points.length > 0 && <> → 今天继续 {plan.points[0]}</>}
               </p>
             )}
           </div>

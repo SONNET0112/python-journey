@@ -33,6 +33,8 @@ export interface DayPlan {
   mode?: "normal" | "rest" | "consolidation";
   /** true = 未来日期按节奏推算的预览，记录当天后会被校准 */
   projected?: boolean;
+  /** true = 上次那份计划没动过，今天是接着它的内容继续，不是按日历翻到"第二天" */
+  continuation?: boolean;
   tasks: DailyTask[];
   totalMinutes: number;
   energy: Energy;

@@ -210,7 +210,7 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
 
           {plan && plan.points.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/8 bg-white/5 px-3 py-2 text-[11px] text-[var(--color-muted)]">
-              <span className="text-[var(--color-dim)]">{plan.previousPoints.length > 0 ? "上一节" : "已学"}</span>
+              <span className="text-[var(--color-dim)]">{plan.continuation ? "上次没学完" : plan.previousPoints.length > 0 ? "上一节" : "已学"}</span>
               <span>
                 {(plan.previousPoints.length
                   ? plan.previousPoints
@@ -218,8 +218,8 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
                 ).join("、") || "（这是这一主题的起点）"}
               </span>
               <span className="text-[var(--color-dim)]">→</span>
-              <span className="text-[var(--color-accent)]">今天</span>
-              <span className="text-white">{plan.points.join("、")}</span>
+              <span className="text-[var(--color-accent)]">{plan.continuation ? "今天接着" : "今天"}</span>
+              <span className="text-white">{plan.continuation ? "把它们学完" : plan.points.join("、")}</span>
               <span className="ml-auto text-[var(--color-dim)]">
                 主题进度 {(data.progress.pointsDone[plan.topicId] ?? 0)}/{topicById(plan.topicId)?.points.length ?? 1}
               </span>
@@ -241,6 +241,7 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
               <span className="chip">新知识点 {plan.points.length}</span>
               <span className="chip">到期复习 {plan.tasks.filter((t) => t.reviewKey).length}</span>
               {plan.mode === "consolidation" && <span className="chip border-[#ffcf7a]/40 text-[#ffcf7a]">本周综合练习日 · 不学新点</span>}
+              {plan.continuation && <span className="chip border-[#8b7bff]/40 text-[#c9c1ff]">上次没学 · 今天接着上次的内容</span>}
               {plan.mode === "rest" && <span className="chip border-[#ffcf7a]/40 text-[#ffcf7a]">休息日 · 只做轻松回顾</span>}
               <span className="chip">
                 本主题还需约 {daysFor(topicById(plan.topicId)!, data.progress.pointsDone[plan.topicId] ?? 0, slotsFor(minutes, state.energy, state.will))} 天
@@ -364,6 +365,7 @@ ${t.title}`,
             <RefreshCw size={13} className="mt-0.5 shrink-0 text-[var(--color-accent)]" />
             <p>
               计划不是日历自动翻页：只有你记录了「完全掌握 / 基本掌握」，知识点才会前进；「还需要复习」会保留当前知识点并在下一次多安排回顾；
+              昨天（或上一次）那份计划一个任务都没勾、也没记录时，今天不会往后翻一天，而是原样接着上次的内容继续；
               连续三次没掌握时，任务会被自动拆成更小的块。已经完成的任务和你手动改过的计划永远不会被重新生成覆盖。
             </p>
           </div>

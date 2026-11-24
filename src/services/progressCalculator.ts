@@ -1,5 +1,5 @@
 import { STAGES, TOPICS, stageById, topicById } from "../data/roadmap";
-import type { AppData, DayState, LearningStage, Mastery, Topic } from "../types";
+import type { AppData, DayPlan, DayState, LearningStage, Mastery, Topic } from "../types";
 import { pickPoints, slotsFor } from "./scheduler";
 import { addDays, todayISO, weekdayOf } from "../utils/date";
 
@@ -119,6 +119,18 @@ export function projectCursor(d: AppData, date: string): { topicIndex: number; c
     walk(picked.length, picked);
   }
   return { topicIndex: idx, covered, prevPoints };
+}
+
+/**
+ * 上次那份计划真的没动过（没记录、一个任务都没勾）时返回它：今天接着它的内容，而不是按日历往前翻一天。
+ * 昨天没学 → 今天还是昨天那些知识点；学过或记录过 → undefined，正常往前走。
+ */
+export function planToResume(d: AppData, date: string, topicId: string): DayPlan | undefined {
+  const last = Object.values(d.plans)
+    .filter((p) => p.date < date && p.topicId === topicId && (p.points?.length ?? 0) > 0)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .at(-1);
+  return last && !d.records[last.date] && !last.tasks.some((t) => t.done) ? last : undefined;
 }
 
 export function encouragementScene(data: AppData): string {

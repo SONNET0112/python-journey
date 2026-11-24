@@ -66,6 +66,8 @@ export interface GenerateInput {
   consolidation?: boolean;
   mode?: "normal" | "rest" | "consolidation";
   projected?: boolean;
+  /** 上次那份计划没动过：今天接着它，标题要说实话，不能写"回顾昨天" */
+  continuation?: boolean;
 }
 
 const taskId = (date: string, section: string, i: number) => `${date}-${section}-${i}`;
@@ -113,8 +115,9 @@ export function generatePlan(input: GenerateInput): DayPlan {
   }
 
   const prevPts = input.previousPoints ?? [];
-  const reviewTitle =
-    reviewCount > 0
+  const reviewTitle = input.continuation
+    ? `接着上次没学完的：${prevPts.join("、")}（今天先把它们学完）`
+    : reviewCount > 0
       ? `回看还没掌握的部分：${topic.points[Math.min(input.startPoint ?? 0, topic.points.length - 1)]}（第 ${reviewCount + 1} 次）`
       : prevPts.length
         ? `回顾昨天：${prevPts.join("、")}`
@@ -228,6 +231,7 @@ function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, point
     points,
     mode,
     projected: input.projected,
+    continuation: input.continuation,
     previousPoints: input.previousPoints ?? [],
     tasks,
     totalMinutes: tasks.reduce((s, t) => s + t.minutes, 0),
