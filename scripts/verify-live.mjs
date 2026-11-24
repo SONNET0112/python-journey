@@ -34,7 +34,32 @@ const noteValue = await page.getByLabel(/今日重点/).inputValue();
 await page.getByRole("button", { name: "首页", exact: true }).first().click();
 const plantVisible = await page.getByRole("heading", { name: "我的向日葵" }).isVisible();
 
+// continuity check on the deployed build: master today, then look at tomorrow's plan
+const pad = (x) => String(x).padStart(2, "0");
+const d = new Date();
+const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const t = new Date(`${today}T12:00:00`);
+t.setDate(t.getDate() + 1);
+const tomorrow = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+
+await page.getByRole("button", { name: "首页", exact: true }).first().click();
+// today's plan may already be recorded from an earlier run — record only if needed
+if (await page.getByRole("button", { name: "结束今天的学习" }).first().isVisible()) {
+  const nTasks = await page.getByRole("button", { name: /^完成任务：/ }).count();
+  for (let i = 0; i < nTasks; i++) await page.getByRole("button", { name: /^完成任务：/ }).first().click();
+  await page.getByRole("button", { name: "结束今天的学习" }).first().click();
+  await page.getByRole("button", { name: /完全掌握/ }).click();
+  await page.getByRole("button", { name: "完成并领取成长" }).click();
+  await page.getByRole("button", { name: "收下，明天继续" }).click();
+}
+
+await page.getByRole("button", { name: "学习计划", exact: true }).first().click();
+await page.getByRole("button", { name: `选择日期 ${tomorrow}` }).click();
+const continuity = await page.evaluate(() => document.body.innerText);
+const continuityOk = continuity.includes("上一节") && continuity.includes("回顾昨天");
+const learnedSoFar = (continuity.match(/主题进度 (\d+)\/\d+/) || [])[1] ?? null;
+
 await page.screenshot({ path: "shots/live-dashboard.png" });
 await browser.close();
 
-console.log(JSON.stringify({ url: URL, title, h1, tasks, bgLoaded, noteValue, plantVisible, errors }, null, 2));
+console.log(JSON.stringify({ url: URL, title, h1, tasks, bgLoaded, noteValue, plantVisible, continuityOk, learnedSoFar, errors }, null, 2));

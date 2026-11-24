@@ -72,3 +72,13 @@ node scripts/shots.mjs        # 截取各页面截图到 shots/
 - 植物阶段图是按统一规范程序化生成的矢量插画（每种植物 7–8 个阶段各不相同），不是照片级写实素材。
 - 图鉴第一版全部植物可自由领养，解锁门槛只做展示。
 - 移动端底部导航可横向滚动（8 个入口），窄屏下不是全部同时可见。
+
+## 本地启动（桌面快捷方式）
+
+桌面上的 `Python Journey.lnk` 指向 `start-python-journey.bat`：
+
+- 服务已在跑 → 直接打开 http://localhost:5188/
+- 没在跑 → 先启动 `vite`（固定 5188 端口、端口占用就报错而不是偷偷换端口），轮询到 200 再打开浏览器
+- 没装 Node 或启动超时 → 窗口保留并给出中文提示，不会一闪而过
+
+如果浏览器没自动打开，窗口里会打印地址，手动复制到地址栏即可。重新生成快捷方式：`powershell -ExecutionPolicy Bypass -File scripts/make-shortcut.ps1`
