@@ -15,8 +15,8 @@ npm run dev        # http://localhost:5188
 ```bash
 npm run build      # tsc -b + vite build
 npm run preview    # 预览构建产物 http://localhost:4188
-npm test           # 31 个单元测试（vitest）
-npm run test:e2e   # 16 个端到端测试（Playwright，使用本机 Chrome）
+npm test           # 37 个单元测试（vitest）
+npm run test:e2e   # 17 个端到端测试（Playwright，使用本机 Chrome）
 node scripts/gen-assets.mjs   # 重新生成 57 张植物阶段图 + 背景图
 node scripts/shots.mjs        # 截取各页面截图到 shots/
 ```
@@ -39,7 +39,10 @@ node scripts/shots.mjs        # 截取各页面截图到 shots/
 ## 学习计划规则
 
 - 每天的计划由 `services/taskGenerator.ts` 生成：时长 → 各板块分钟数（回顾/新知识/练习/独立实践/总结）；精力疲惫、意愿低、难度偏好共同决定任务数量。
-- 只有记录「完全掌握 / 基本掌握」才会推进知识点；「还需要复习」保留知识点并计入 `reviewCount`，连续三次没掌握后任务自动拆小；「今天没有完成」保留任务。
+- **知识点按顺序推进**：每个主题记录已学到第几个知识点（`progress.pointsDone`），每天学的是「接下来的 N 个」，不会每天从第一个重新学。一个主题的知识点全部学完才进入下一个主题。
+- 只有记录「完全掌握 / 基本掌握」才会推进游标；「还需要复习 / 今天没有完成」保留同一切片并计入 `reviewCount`，连续三次没掌握后任务自动拆小。
+- 回顾任务引用**昨天实际学过的点**（「回顾昨天：A、B」）；没有前序记录时回顾上一节的那一个点，避免凭空回顾。
+- 阶段 2–6 拆成单知识点主题（一天一个清晰线索），阶段 1 仍按每周一个主题、多个知识点。
 - 已存在的计划不会被重新生成覆盖；手动改过的计划（`edited`）和已有完成任务的计划一律拒绝重新生成。
 - 休息日只给两件轻松的任务，不推进知识点。
 
@@ -60,7 +63,7 @@ node scripts/shots.mjs        # 截取各页面截图到 shots/
 ## 数据结构与存储
 
 - 类型定义集中在 `src/types/index.ts`（Roadmap、LearningStage、WeeklyPlan、DailyTask、StudyRecord、UserSettings、Plant、PlantStage、PlantAdoption、GrowthJournal、Achievement…）。
-- 存储键：`python-journey.data`，`schemaVersion = 2`（v1 数据自动补空的 `notes` / `wrongQuestions`）。读取时校验，首次运行才写入默认值；导入先 `validateAppData` 校验，失败时原数据不动。
+- 存储键：`python-journey.data`，`schemaVersion = 3`（v1/v2 数据自动补齐：`notes` / `wrongQuestions` 为空，已完成主题视为知识点全部学完）。读取时校验，首次运行才写入默认值；导入先 `validateAppData` 校验，失败时原数据不动。
 - 植物图片通过 `data/plants.ts` 的配置映射解析（`import.meta.glob`），组件里没有硬编码路径；缺图时渲染统一占位。
 
 ## 已知限制
