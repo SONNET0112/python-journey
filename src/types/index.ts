@@ -31,6 +31,8 @@ export interface DayPlan {
   previousPoints: string[];
   /** rest = 休息日, consolidation = 每周综合练习日, normal = 正常推进 */
   mode?: "normal" | "rest" | "consolidation";
+  /** true = 未来日期按节奏推算的预览，记录当天后会被校准 */
+  projected?: boolean;
   tasks: DailyTask[];
   totalMinutes: number;
   energy: Energy;

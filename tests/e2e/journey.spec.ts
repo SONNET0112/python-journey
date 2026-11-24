@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { addDays, todayISO } from "../../src/utils/date";
+import { addDays, todayISO, weekdayOf } from "../../src/utils/date";
 
 const errors: string[] = [];
 test.beforeEach(async ({ page }) => {
@@ -181,6 +181,34 @@ test("今天是明天的基础：知识点按顺序推进，不跳不重复", as
   // 学过的点会自动排进间隔复习（1 天后第一次）
   await expect(page.getByText(/间隔复习（第 1 次）：Class 与 Object/)).toBeVisible();
   await expect(page.getByText(/今日名额 2/)).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("未来几天的计划内容各不相同，不是同一天重复", async ({ page }) => {
+  const today = todayISO();
+  // 周六是综合练习日、周日休息，挑两个正常学习日比较
+  const normalDays: string[] = [];
+  for (let i = 1; i <= 6 && normalDays.length < 2; i++) {
+    const d = addDays(today, i);
+    if (![0, 6].includes(weekdayOf(d))) normalDays.push(d);
+  }
+  expect(normalDays).toHaveLength(2);
+
+  await page.goto("/");
+  await nav(page, "学习计划").click();
+
+  const learnTitles = async (date: string) => {
+    await page.getByRole("button", { name: `选择日期 ${date}` }).click();
+    await page.waitForTimeout(250);
+    return page.locator("p", { hasText: /^理解 / }).allInnerTexts();
+  };
+
+  const first = await learnTitles(normalDays[0]);
+  const second = await learnTitles(normalDays[1]);
+  expect(first.length).toBeGreaterThan(0);
+  expect(second.length).toBeGreaterThan(0);
+  expect(first.join("|")).not.toBe(second.join("|"));
+  await expect(page.getByText("按节奏推算的预览")).toBeVisible();
   expect(errors).toEqual([]);
 });
 

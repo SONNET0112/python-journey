@@ -1,5 +1,6 @@
 import type { AppData, DayPlan, UserSettings } from "../types";
 import { TOPICS } from "../data/roadmap";
+import { todayISO } from "../utils/date";
 
 export const STORAGE_KEY = "python-journey.data";
 export const SCHEMA_VERSION = 4;
@@ -83,6 +84,11 @@ export function validateAppData(raw: unknown): { ok: true; data: AppData } | { o
       points: Array.isArray(plan?.points) && plan.points.length ? plan.points : (topic ? topic.points.slice(start, start + learnCount) : []),
       previousPoints: Array.isArray(plan?.previousPoints) ? plan.previousPoints : [],
     };
+  }
+  // 未来计划只是"按节奏的预览"，旧的（或未编辑的）一律丢掉，打开时按当前进度重新推演
+  const today = todayISO();
+  for (const [date, plan] of Object.entries(plans)) {
+    if (date > today && !plan.edited && !plan.tasks.some((t) => t.done) && !data.records[date]) delete plans[date];
   }
   data.plans = plans;
   // v4 added the spaced-repetition queue

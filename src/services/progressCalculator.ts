@@ -1,6 +1,7 @@
 import { STAGES, TOPICS, stageById, topicById } from "../data/roadmap";
-import type { AppData, LearningStage, Mastery, Topic } from "../types";
-import { addDays, todayISO } from "../utils/date";
+import type { AppData, DayState, LearningStage, Mastery, Topic } from "../types";
+import { pickPoints, slotsFor } from "./scheduler";
+import { addDays, todayISO, weekdayOf } from "../utils/date";
 
 export const totalTopics = () => TOPICS.length;
 
@@ -69,6 +70,55 @@ export function trendSeries(data: AppData, days = 14) {
     out.push({ date: date.slice(5), 分钟: r?.minutes ?? 0, 任务: r?.completedTasks ?? 0 });
   }
   return out;
+}
+
+export const minutesFor = (d: AppData, date: string, state?: DayState): number =>
+  state?.minutes ?? d.settings.minutesByWeekday[String(weekdayOf(date))] ?? d.settings.defaultMinutes;
+
+/**
+ * Where the learner will be on `date` if every planned day is followed.
+ * Future days used to all read the same cursor, so 25/26/27 showed identical
+ * content — projecting forward is what makes a week's plan meaningful.
+ */
+export function projectCursor(d: AppData, date: string): { topicIndex: number; covered: number; prevPoints: string[] } {
+  const today = todayISO();
+  let idx = Math.min(d.progress.topicIndex, TOPICS.length - 1);
+  let covered = d.progress.pointsDone[TOPICS[idx]?.id ?? ""] ?? 0;
+  let prevPoints: string[] = [];
+
+  const walk = (taught: number, points: string[] = []) => {
+    const topic = TOPICS[idx];
+    if (!topic) return;
+    if (points.length) prevPoints = points;
+    covered += taught;
+    if (covered >= topic.points.length) {
+      idx = Math.min(idx + 1, TOPICS.length - 1);
+      covered = 0;
+    }
+  };
+
+  for (let day = today; day < date; day = addDays(day, 1)) {
+    if (d.records[day]) {
+      // already reflected in the real cursor, but still the "上一节" for the next day
+      const taught = d.plans[day]?.points ?? [];
+      if (taught.length) prevPoints = taught;
+      continue;
+    }
+    const planned = d.plans[day];
+    if (planned) {
+      walk(planned.points?.length ?? 0, planned.points ?? []);
+      continue;
+    }
+    const wd = weekdayOf(day);
+    if (d.settings.restDays.includes(wd)) continue;
+    if (d.settings.weeklyRhythm && wd === 6) continue; // consolidation day teaches nothing new
+    const topic = TOPICS[idx];
+    const state = d.dayStates[day];
+    const slots = slotsFor(minutesFor(d, day, state), state?.energy ?? d.settings.energy, state?.will ?? "normal");
+    const picked = pickPoints(topic, covered, slots);
+    walk(picked.length, picked);
+  }
+  return { topicIndex: idx, covered, prevPoints };
 }
 
 export function encouragementScene(data: AppData): string {

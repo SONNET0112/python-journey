@@ -148,3 +148,41 @@ describe("weekly rhythm", () => {
     expect(plan.tasks).toHaveLength(2);
   });
 });
+
+describe("future days differ (no more identical 25/26/27)", () => {
+  it("每个未来日期都从按计划推进的位置起算", async () => {
+    const { defaultData } = await import("../src/services/storage");
+    const { projectCursor } = await import("../src/services/progressCalculator");
+    const { addDays, todayISO } = await import("../src/utils/date");
+    const d = defaultData();
+    const today = todayISO();
+    d.plans[today] = generatePlan({
+      date: today,
+      topic: TOPICS[0],
+      minutes: 30,
+      energy: "normal",
+      will: "normal",
+      difficulty: "normal",
+      reviewCount: 0,
+    });
+    expect(d.plans[today].points).toHaveLength(2);
+    expect(projectCursor(d, addDays(today, 1)).covered).toBe(2);
+    expect(projectCursor(d, addDays(today, 2)).covered).toBe(4);
+    expect(projectCursor(d, addDays(today, 3)).covered).toBe(0); // 第 3 天开始换主题
+    expect(projectCursor(d, addDays(today, 3)).topicIndex).toBe(1);
+  });
+
+  it("休息日和综合日不推进未来进度", async () => {
+    const { defaultData } = await import("../src/services/storage");
+    const { projectCursor } = await import("../src/services/progressCalculator");
+    const { addDays, weekdayOf, todayISO } = await import("../src/utils/date");
+    const d = defaultData();
+    const today = todayISO();
+    d.plans[today] = generatePlan({ date: today, topic: TOPICS[0], minutes: 30, energy: "normal", will: "normal", difficulty: "normal", reviewCount: 0 });
+    // 找到下一个周六（综合日）和周日（休息日）
+    let sat = addDays(today, 1);
+    while (weekdayOf(sat) !== 6) sat = addDays(sat, 1);
+    const sun = addDays(sat, 1);
+    expect(projectCursor(d, sun).covered).toBe(projectCursor(d, sat).covered);
+  });
+});

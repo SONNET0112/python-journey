@@ -1,4 +1,5 @@
 import type { DailyNote, NoteTag, ReviewStatus, Topic, WrongQuestion } from "../types";
+import { todayISO } from "../utils/date";
 
 export const NOTE_FIELDS = [
   { key: "keyPoint", label: "今日重点", hint: "今天最重要的知识点，一句话说清" },
@@ -63,18 +64,24 @@ export function mistakeMatches(m: WrongQuestion, query: string, status: ReviewSt
  * knowledge points. Mastered ones are never resurfaced, and nothing is
  * auto-marked as mastered.
  */
-export function mistakesToReview(topic: Topic, mistakes: WrongQuestion[], limit = 2): WrongQuestion[] {
+export function mistakesToReview(topic: Topic, mistakes: WrongQuestion[], limit = 2, today = todayISO()): WrongQuestion[] {
   return mistakes
     .filter((m) => m.status !== "mastered")
     .map((m) => ({
       m,
-      score: (m.topicId === topic.id ? 2 : 0) + m.points.filter((p) => topic.points.includes(p)).length,
+      score:
+        (m.topicId === topic.id ? 2 : 0) +
+        m.points.filter((p) => topic.points.includes(p)).length +
+        // 放了一天以上还没弄懂的错题，即使换了主题也要回来一次（间隔复习同样适用）
+        (daysSince(m.createdAt, today) >= 1 ? 0.5 : 0),
     }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score || b.m.reviewCount - a.m.reviewCount)
     .slice(0, limit)
     .map((x) => x.m);
 }
+
+const daysSince = (iso: string, today: string) => Math.round((new Date(today).getTime() - new Date(iso.slice(0, 10)).getTime()) / 86400000);
 
 /** Knowledge points the learner has already got wrong twice or more. */
 export function weakPoints(mistakes: WrongQuestion[]): string[] {

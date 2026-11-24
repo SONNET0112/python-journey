@@ -5,7 +5,7 @@ import { STAGES, TOPICS, topicById } from "../data/roadmap";
 import { evaluate, unlockAll } from "../services/achievementService";
 import { pickLine } from "../services/encouragementService";
 import { EXP, grow, newAdoption, water, wateredOn } from "../services/plantGrowth";
-import { advancePoints, currentTopic } from "../services/progressCalculator";
+import { advancePoints, currentTopic, minutesFor, projectCursor } from "../services/progressCalculator";
 import { advanceReview, dueReviews, scheduleAfterLearn } from "../services/scheduler";
 import { emptyNote, mistakesToReview, tagsForTopic, weakPoints } from "../services/notes";
 import { addTask, generatePlan, removeTask, withTaskMinutes, withTaskTitle } from "../services/taskGenerator";
@@ -65,9 +65,12 @@ interface Ctx {
 const AppContext = createContext<Ctx | null>(null);
 
 const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
-  const topic = TOPICS[Math.min(d.progress.topicIndex, TOPICS.length - 1)];
+  // 未来日期从"按计划推进"的位置起算，三天的内容才不会一模一样
+  const future = date > todayISO() && !d.records[date];
+  const proj = future ? projectCursor(d, date) : null;
+  const topic = TOPICS[Math.min(proj ? proj.topicIndex : d.progress.topicIndex, TOPICS.length - 1)];
   const lastDone = d.progress.completedTopicIds[d.progress.completedTopicIds.length - 1];
-  const minutes = state.minutes ?? d.settings.minutesByWeekday[String(weekdayOf(date))] ?? d.settings.defaultMinutes;
+  const minutes = minutesFor(d, date, state);
   // the last plan before this date tells us where the learner actually stopped
   const restDay = d.settings.restDays.includes(weekdayOf(date));
   const consolidation = d.settings.weeklyRhythm && weekdayOf(date) === 6 && !restDay;
@@ -83,12 +86,13 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
     will: state.will,
     difficulty: state.difficulty,
     reviewCount: d.progress.reviewCount[topic.id] ?? 0,
-    startPoint: d.progress.pointsDone[topic.id] ?? 0,
+    startPoint: proj ? proj.covered : (d.progress.pointsDone[topic.id] ?? 0),
     restDay,
     consolidation,
     reviewItems: dueReviews(d.progress.reviews, date, consolidation ? 3 : 2),
     previousTopic: lastDone ? topicById(lastDone) : undefined,
-    previousPoints: previousPlan?.points ?? [],
+    previousPoints: proj ? proj.prevPoints : (previousPlan?.points ?? []),
+    projected: future,
     mistakes: mistakesToReview(topic, d.wrongQuestions).map((m) => ({ title: m.title, reason: m.reason })),
     weakPoints: weakPoints(d.wrongQuestions),
   });

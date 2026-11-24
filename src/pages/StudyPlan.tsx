@@ -191,6 +191,7 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
                 <span className="chip">{fmtCN(date)}</span>
                 {isRest && <span className="chip border-[#ffcf7a]/40 text-[#ffcf7a]">休息日</span>}
                 {plan?.edited && <span className="chip">手动调整过</span>}
+                {plan?.projected && <span className="chip border-[#8b7bff]/40 text-[#c9c1ff]">按节奏推算的预览</span>}
               </div>
               <p className="mt-1 flex items-center gap-1 text-[11px] text-[var(--color-dim)]">
                 <Clock size={11} /> 预计 {plan?.totalMinutes ?? 0} 分钟 · {plan?.tasks.filter((t) => t.done).length ?? 0}/{plan?.tasks.length ?? 0} 已完成

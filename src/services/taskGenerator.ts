@@ -65,6 +65,7 @@ export interface GenerateInput {
   /** weekly consolidation day: no new points, reviews + project only */
   consolidation?: boolean;
   mode?: "normal" | "rest" | "consolidation";
+  projected?: boolean;
 }
 
 const taskId = (date: string, section: string, i: number) => `${date}-${section}-${i}`;
@@ -226,6 +227,7 @@ function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, point
     week: input.topic.week,
     points,
     mode,
+    projected: input.projected,
     previousPoints: input.previousPoints ?? [],
     tasks,
     totalMinutes: tasks.reduce((s, t) => s + t.minutes, 0),
