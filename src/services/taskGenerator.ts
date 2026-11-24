@@ -44,6 +44,8 @@ export interface GenerateInput {
   date: string;
   topic: Topic;
   minutes: number;
+  /** how many points of this topic are already learned — the plan continues from here */
+  startPoint?: number;
   energy: Energy;
   will: Will;
   difficulty: Difficulty;
@@ -51,6 +53,8 @@ export interface GenerateInput {
   reviewCount: number;
   restDay?: boolean;
   previousTopic?: Topic;
+  /** points covered by the previous plan, quoted in the review task */
+  previousPoints?: string[];
   /** mistakes due for review today (already filtered by the store) */
   mistakes?: { title: string; reason: string }[];
   /** knowledge points the learner has already got wrong at least twice */
@@ -76,12 +80,17 @@ export function generatePlan(input: GenerateInput): DayPlan {
   const practiceScale = energy === "tired" ? 0.7 : 1;
   const tasks: DailyTask[] = [];
 
+  const prevPts = input.previousPoints ?? [];
   const reviewTitle =
     reviewCount > 0
-      ? `回看昨天没掌握的部分：${topic.points[0]}（第 ${reviewCount + 1} 次）`
-      : input.previousTopic
-        ? `回顾昨天：${input.previousTopic.points[input.previousTopic.points.length - 1]}`
-        : `回顾基础：${topic.points[0]}`;
+      ? `回看还没掌握的部分：${topic.points[Math.min(input.startPoint ?? 0, topic.points.length - 1)]}（第 ${reviewCount + 1} 次）`
+      : prevPts.length
+        ? `回顾昨天：${prevPts.join("、")}`
+        : (input.startPoint ?? 0) > 0
+          ? `回顾上一节：${topic.points[(input.startPoint ?? 0) - 1]}（今天接着往后学）`
+          : input.previousTopic
+            ? `回顾上一节：${input.previousTopic.points[input.previousTopic.points.length - 1]}`
+            : `回顾基础：${topic.points[0]}`;
   const mistakeReviews = input.mistakes ?? [];
   tasks.push({
     id: taskId(date, "review", 0),
@@ -106,12 +115,16 @@ export function generatePlan(input: GenerateInput): DayPlan {
   if (split) learnCount = Math.min(learnCount, 1);
   if (will === "reluctant") learnCount = Math.max(1, learnCount - 1);
   if (will === "eager" && minutes >= 45) learnCount = Math.min(topic.points.length, learnCount + 1);
-  const points = split ? topic.points.slice(0, 1) : topic.points.slice(0, learnCount);
+  // continue from the cursor; a topic is never re-read from the first point
+  const start = Math.max(0, Math.min(input.startPoint ?? 0, topic.points.length - 1));
+  const points = topic.points.slice(start, start + learnCount);
   points.forEach((p, i) => {
     tasks.push({
       id: taskId(date, "learn", i),
       section: "learn",
-      title: split ? `只看一小块：${p}（先弄懂它是什么）` : `理解 ${p}：先用自己的话解释一遍`,
+      title: split
+        ? `只看一小块：${p}（先弄懂它是什么）`
+        : `理解 ${p}：先用自己的话解释一遍${i === 0 && start > 0 ? "（接着上次的顺序）" : ""}`,
       minutes: Math.round(alloc.learn / points.length),
       done: false,
     });
@@ -123,7 +136,7 @@ export function generatePlan(input: GenerateInput): DayPlan {
     section: "practice",
     title: split
       ? `跟着写 5 行代码，只验证 ${topic.points[0]} 这一件事`
-      : `动手写：用 ${topic.points[0]} 写一段能跑的最小示例`,
+      : `动手写：用 ${points[0]} 写一段能跑的最小示例`,
     minutes: practiceMinutes,
     done: false,
   });
@@ -135,7 +148,7 @@ export function generatePlan(input: GenerateInput): DayPlan {
       section: "independent",
       title: isProject
         ? `独立实践：不看教程，推进「${topic.project}」`
-        : `独立实践：合上教程，自己把 ${topic.points[points.length - 1]} 用一遍`,
+        : `独立实践：合上教程，自己把 ${points[points.length - 1]} 用一遍`,
       minutes: Math.round(alloc.independent * practiceScale),
       done: false,
       kind: isProject ? "project" : undefined,
@@ -157,7 +170,7 @@ export function generatePlan(input: GenerateInput): DayPlan {
     tasks.push({
       id: taskId(date, "independent", 1),
       section: "independent",
-      title: `挑战一下：把 ${topic.points[0]} 讲给自己听，并说出它什么时候不该用`,
+      title: `挑战一下：把 ${points[0]} 讲给自己听，并说出它什么时候不该用`,
       minutes: 10,
       done: false,
     });
@@ -171,16 +184,18 @@ export function generatePlan(input: GenerateInput): DayPlan {
     done: false,
   });
 
-  return basePlan(input, tasks, topic.title);
+  return basePlan(input, tasks, topic.title, points);
 }
 
-function basePlan(input: GenerateInput, tasks: DailyTask[], title: string): DayPlan {
+function basePlan(input: GenerateInput, tasks: DailyTask[], title: string, points: string[] = []): DayPlan {
   return {
     date: input.date,
     topicId: input.topic.id,
     topicTitle: title,
     stageId: input.topic.stageId,
     week: input.topic.week,
+    points,
+    previousPoints: input.previousPoints ?? [],
     tasks,
     totalMinutes: tasks.reduce((s, t) => s + t.minutes, 0),
     energy: input.energy,

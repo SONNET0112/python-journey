@@ -103,20 +103,18 @@ export const TOPICS: Topic[] = (() => {
     const m: LearningModule = plan.modules[0];
     list.push({ id: m.id, title: `${m.title}`, stageId: "stage-1", week: plan.week, points: m.points, project: m.project });
   }
+  // stages 2–6: one knowledge point per topic, so a day always continues the same thread
   for (const stage of STAGES.slice(1)) {
-    const per = 3;
-    for (let i = 0; i < stage.topics.length || i === 0; i += per) {
-      const chunk = stage.topics.slice(i, i + per);
-      if (!chunk.length) break;
+    stage.topics.forEach((point, i) => {
       list.push({
-        id: `${stage.id}-t${i / per + 1}`,
-        title: chunk.join(" · "),
+        id: `${stage.id}-t${i + 1}`,
+        title: point,
         stageId: stage.id,
-        week: Math.ceil((i + 1) / per),
-        points: chunk,
+        week: Math.ceil((i + 1) / 3),
+        points: [point],
         project: i === 0 ? stage.project : undefined,
       });
-    }
+    });
   }
   return list;
 })();

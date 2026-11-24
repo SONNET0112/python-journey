@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { RecordDialog } from "../components/learning/RecordDialog";
 import { TaskRow } from "../components/learning/TaskRow";
 import { MyPlantCard } from "../components/plant/MyPlantCard";
-import { Bar, Card, Ring, SectionTitle, Stat } from "../components/ui";
+import { Bar, Card, Ring, SectionTitle, Stat, cx } from "../components/ui";
 import { STAGES, TOPICS } from "../data/roadmap";
 import { useApp } from "../hooks/useApp";
 import { dailyLine } from "../services/encouragementService";
@@ -24,6 +24,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: strin
   const done = plan.tasks.filter((t) => t.done).length;
   const pct = plan.tasks.length ? Math.round((done / plan.tasks.length) * 100) : 0;
   const record = data.records[today];
+  const covered = data.progress.pointsDone[topic.id] ?? 0;
   const lastRecord = recordsList(data).filter((r) => r.date < today).at(-1);
 
   const upcoming = useMemo(() => {
@@ -64,14 +65,45 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageId, date?: strin
           </div>
 
           <div className="mt-4">
-            <p className="mb-1.5 text-[11px] text-[var(--color-muted)]">本周知识点</p>
+            <p className="mb-1.5 flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
+              本周知识点
+              <span className="stat-value text-[var(--color-dim)]">
+                已学 {covered}/{topic.points.length}
+              </span>
+              <span className="ml-auto flex items-center gap-2 text-[10px] text-[var(--color-dim)]">
+                <span className="text-[var(--color-accent)]">▸ 今天</span>
+                <span className="text-[var(--color-leaf)]">✓ 已学</span>
+                <span>待学</span>
+              </span>
+            </p>
             <div className="flex flex-wrap gap-1.5">
-              {topic.points.map((pt) => (
-                <span key={pt} className="rounded-lg bg-white/7 px-2 py-1 text-[11px] text-[var(--color-muted)]">
-                  {pt}
-                </span>
-              ))}
+              {topic.points.map((pt, i) => {
+                const isToday = plan.points.includes(pt);
+                const learned = i < covered;
+                return (
+                  <span
+                    key={pt}
+                    className={cx(
+                      "rounded-lg border px-2 py-1 text-[11px]",
+                      isToday
+                        ? "border-[var(--color-accent)]/70 bg-[var(--color-accent)]/20 font-medium text-white"
+                        : learned
+                          ? "border-[var(--color-leaf)]/40 bg-[var(--color-leaf)]/10 text-[var(--color-leaf)]"
+                          : "border-white/8 bg-white/4 text-[var(--color-dim)]",
+                    )}
+                  >
+                    {isToday ? "▸ " : learned ? "✓ " : ""}
+                    {pt}
+                  </span>
+                );
+              })}
             </div>
+            {plan.previousPoints.length > 0 && (
+              <p className="mt-2 text-[11px] text-[var(--color-dim)]">
+                接着昨天：上一节学了 {plan.previousPoints.join("、")}
+                {plan.points.length > 0 && <> → 今天继续 {plan.points[0]}</>}
+              </p>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">

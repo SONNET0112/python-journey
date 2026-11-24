@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { addDays, todayISO } from "../../src/utils/date";
 
 const errors: string[] = [];
 test.beforeEach(async ({ page }) => {
@@ -150,6 +151,33 @@ test("导入非法 JSON 时保留原数据", async ({ page }) => {
     ),
   });
   await expect(page.getByText("数据已导入，原记录已被替换")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("今天是明天的基础：知识点按顺序推进，不跳不重复", async ({ page }) => {
+  const today = todayISO();
+  const tomorrow = addDays(today, 1);
+
+  await page.goto("/");
+  const tasks = page.getByRole("button", { name: /^完成任务：/ });
+  const n = await tasks.count();
+  for (let i = 0; i < n; i++) await page.getByRole("button", { name: /^完成任务：/ }).first().click();
+  await page.getByRole("button", { name: "结束今天的学习" }).first().click();
+  await page.getByRole("button", { name: /完全掌握/ }).click();
+  await page.getByRole("button", { name: "完成并领取成长" }).click();
+  await page.getByRole("button", { name: "收下，明天继续" }).click();
+
+  // today taught the first two points → the hero should say 2 of 6
+  await expect(page.getByText(/已学 2\/6/)).toBeVisible();
+
+  await nav(page, "学习计划").click();
+  await page.getByRole("button", { name: `选择日期 ${tomorrow}` }).click();
+  await expect(page.getByText("上一节")).toBeVisible();
+  await expect(page.getByText(/回顾昨天：/).first()).toBeVisible();
+  // day 2 teaches points 3 and 4, not points 1 and 2 again
+  await expect(page.getByText(/理解 self 是什么/).first()).toBeVisible();
+  await expect(page.getByText(/理解 实例属性与实例方法/).first()).toBeVisible();
+  await expect(page.getByText(/理解 Class 与 Object/)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

@@ -23,6 +23,10 @@ export interface DayPlan {
   topicTitle: string;
   stageId: string;
   week: number;
+  /** the exact knowledge points this day teaches — the next slice, never the first slice again */
+  points: string[];
+  /** what yesterday actually covered, used for the review task and the continuity line */
+  previousPoints: string[];
   tasks: DailyTask[];
   totalMinutes: number;
   energy: Energy;
@@ -203,6 +207,8 @@ export interface UserSettings {
 
 export interface UserProgress {
   topicIndex: number;
+  /** topicId → how many of its knowledge points are already learned */
+  pointsDone: Record<string, number>;
   completedTopicIds: string[];
   /** topicId → times it came back as "还需要复习" */
   reviewCount: Record<string, number>;

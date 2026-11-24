@@ -1,7 +1,8 @@
 import type { AppData, DayPlan, UserSettings } from "../types";
+import { TOPICS } from "../data/roadmap";
 
 export const STORAGE_KEY = "python-journey.data";
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const defaultSettings = (): UserSettings => ({
   defaultMinutes: 30,
@@ -17,6 +18,7 @@ export const defaultData = (): AppData => ({
   settings: defaultSettings(),
   progress: {
     topicIndex: 0,
+    pointsDone: {},
     completedTopicIds: [],
     reviewCount: {},
     totalStudyDays: 0,
@@ -67,6 +69,15 @@ export function validateAppData(raw: unknown): { ok: true; data: AppData } | { o
     activePlantId: typeof raw.activePlantId === "string" ? raw.activePlantId : null,
     seenEncouragements: Array.isArray(raw.seenEncouragements) ? (raw.seenEncouragements as string[]) : [],
   };
+  // v2 had no per-point cursor: treat fully completed topics as fully learned
+  if (!isObj((raw as Record<string, unknown>).progress) || !isObj(((raw as Record<string, unknown>).progress as Record<string, unknown>).pointsDone)) {
+    const done: Record<string, number> = {};
+    for (const id of data.progress.completedTopicIds) {
+      const t = TOPICS.find((x) => x.id === id);
+      if (t) done[id] = t.points.length;
+    }
+    data.progress = { ...data.progress, pointsDone: done };
+  }
   return { ok: true, data };
 }
 

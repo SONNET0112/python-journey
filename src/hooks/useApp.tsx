@@ -5,7 +5,7 @@ import { STAGES, TOPICS, topicById } from "../data/roadmap";
 import { evaluate, unlockAll } from "../services/achievementService";
 import { pickLine } from "../services/encouragementService";
 import { EXP, grow, newAdoption, water, wateredOn } from "../services/plantGrowth";
-import { currentTopic } from "../services/progressCalculator";
+import { advancePoints, currentTopic } from "../services/progressCalculator";
 import { emptyNote, mistakesToReview, tagsForTopic, weakPoints } from "../services/notes";
 import { addTask, generatePlan, removeTask, withTaskMinutes, withTaskTitle } from "../services/taskGenerator";
 import { defaultData, defaultSettings, exportJSON, importJSON, load, save } from "../services/storage";
@@ -67,6 +67,11 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
   const topic = TOPICS[Math.min(d.progress.topicIndex, TOPICS.length - 1)];
   const lastDone = d.progress.completedTopicIds[d.progress.completedTopicIds.length - 1];
   const minutes = state.minutes ?? d.settings.minutesByWeekday[String(weekdayOf(date))] ?? d.settings.defaultMinutes;
+  // the last plan before this date tells us where the learner actually stopped
+  const previousPlan = Object.values(d.plans)
+    .filter((p) => p.date < date)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .at(-1);
   return generatePlan({
     date,
     topic,
@@ -75,8 +80,10 @@ const buildPlan = (d: AppData, date: string, state: DayState): DayPlan => {
     will: state.will,
     difficulty: state.difficulty,
     reviewCount: d.progress.reviewCount[topic.id] ?? 0,
+    startPoint: d.progress.pointsDone[topic.id] ?? 0,
     restDay: d.settings.restDays.includes(weekdayOf(date)),
     previousTopic: lastDone ? topicById(lastDone) : undefined,
+    previousPoints: previousPlan?.points ?? [],
     mistakes: mistakesToReview(topic, d.wrongQuestions).map((m) => ({ title: m.title, reason: m.reason })),
     weakPoints: weakPoints(d.wrongQuestions),
   });
@@ -169,13 +176,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const topic = topicById(plan.topicId) ?? currentTopic(d);
       const completed = d.progress.completedTopicIds;
-      const advanced = (mastery === "full" || mastery === "basic") && !completed.includes(topic.id);
+      const coveredBefore = d.progress.pointsDone[topic.id] ?? 0;
+      const taughtToday = plan.points?.length || 0;
+      const cursor = advancePoints(topic, coveredBefore, taughtToday, mastery);
+      const covered = cursor.covered;
+      const topicFinished = cursor.finished;
+      const advanced = topicFinished && !completed.includes(topic.id);
       const reviewCount = { ...d.progress.reviewCount };
       if (mastery === "review") reviewCount[topic.id] = (reviewCount[topic.id] ?? 0) + 1;
       if (mastery === "full") delete reviewCount[topic.id];
 
       const completedTopicIds = advanced ? [...completed, topic.id] : completed;
       const topicIndex = advanced ? Math.min(d.progress.topicIndex + 1, TOPICS.length - 1) : d.progress.topicIndex;
+      const pointsDone = { ...d.progress.pointsDone, [topic.id]: covered };
 
       const projectDone = plan.tasks.some((t) => t.kind === "project" && t.done);
       const completedProjects =
@@ -240,6 +253,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         progress: {
           ...d.progress,
           topicIndex,
+          pointsDone,
           completedTopicIds,
           reviewCount,
           completedProjects,
@@ -260,7 +274,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         tasksDone: doneTasks.length,
         totalTasks: plan.tasks.length,
         minutes,
-        advanced: advanced ? topic.title : null,
+        advanced: advanced
+          ? `${topic.title}（本主题已学完）`
+          : covered > coveredBefore
+            ? `${topic.title} · 已学 ${covered}/${topic.points.length} 个知识点`
+            : null,
         upgradedFromName,
         upgradedToName,
         upgradedImage,

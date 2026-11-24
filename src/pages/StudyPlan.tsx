@@ -198,13 +198,31 @@ export function StudyPlan({ onOpenNotes }: { onOpenNotes: (date: string) => void
             </div>
             <div className="flex flex-wrap gap-2">
               <button className="btn px-3 py-1.5 text-xs" onClick={() => onOpenNotes(date)}>
-                <StickyNote size={13} /> {data.notes[date] ? "查看笔记" : "今日重点笔记"}
+                <StickyNote size={13} /> {data.notes[date] ? "查看笔记" : date === todayISO() ? "今日重点笔记" : "当天重点笔记"}
               </button>
               <button className="btn btn-primary px-3 py-1.5 text-xs" onClick={() => setRecordOpen(true)}>
                 {record ? "修改记录" : "结束这一天"}
               </button>
             </div>
           </div>
+
+          {plan && plan.points.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/8 bg-white/5 px-3 py-2 text-[11px] text-[var(--color-muted)]">
+              <span className="text-[var(--color-dim)]">{plan.previousPoints.length > 0 ? "上一节" : "已学"}</span>
+              <span>
+                {(plan.previousPoints.length
+                  ? plan.previousPoints
+                  : (topicById(plan.topicId)?.points ?? []).slice(0, data.progress.pointsDone[plan.topicId] ?? 0).filter((p) => !plan.points.includes(p))
+                ).join("、") || "（这是这一主题的起点）"}
+              </span>
+              <span className="text-[var(--color-dim)]">→</span>
+              <span className="text-[var(--color-accent)]">今天</span>
+              <span className="text-white">{plan.points.join("、")}</span>
+              <span className="ml-auto text-[var(--color-dim)]">
+                主题进度 {(data.progress.pointsDone[plan.topicId] ?? 0)}/{topicById(plan.topicId)?.points.length ?? 1}
+              </span>
+            </div>
+          )}
 
           {plan && plan.totalMinutes > 0 && (
             <div className="mb-3">

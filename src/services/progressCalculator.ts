@@ -1,8 +1,17 @@
 import { STAGES, TOPICS, stageById, topicById } from "../data/roadmap";
-import type { AppData, LearningStage, Topic } from "../types";
+import type { AppData, LearningStage, Mastery, Topic } from "../types";
 import { addDays, todayISO } from "../utils/date";
 
 export const totalTopics = () => TOPICS.length;
+
+/**
+ * Advances the per-topic knowledge-point cursor. Only a real mastery answer moves
+ * it; "还需要复习 / 没有完成" keeps the same points for next time.
+ */
+export function advancePoints(topic: Topic, covered: number, taught: number, mastery: Mastery) {
+  const next = mastery === "full" || mastery === "basic" ? Math.min(topic.points.length, Math.max(covered, covered + taught)) : covered;
+  return { covered: next, finished: next >= topic.points.length, justFinished: next >= topic.points.length && covered < topic.points.length };
+}
 
 export function overallProgress(data: AppData) {
   const done = data.progress.completedTopicIds.length;
